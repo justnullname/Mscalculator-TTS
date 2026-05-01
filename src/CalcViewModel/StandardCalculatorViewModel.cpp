@@ -186,7 +186,7 @@ StandardCalculatorViewModel::StandardCalculatorViewModel()
     AreProgrammerRadixOperatorsVisible = false;
 
     // Pre-warm the TTS Cache for quick audio feedback
-    CalculatorApp::Common::TtsAudioManager::Get().InitCache();
+    TtsAudioManager::InitCache();
 }
 
 String ^ StandardCalculatorViewModel::LocalizeDisplayValue(_In_ wstring const& displayValue)
@@ -262,6 +262,12 @@ void StandardCalculatorViewModel::SetPrimaryDisplay(_In_ String ^ displayStringV
     }
 
     IsInError = isError;
+    
+    // 如果是结果更新（通常意味着计算完成），则朗读当前显示的值
+    if (AreAlwaysOnTopResultsUpdated)
+    {
+        TtsAudioManager::Enqueue(DisplayValue);
+    }
 
     if (IsProgrammer)
     {
@@ -658,19 +664,41 @@ void StandardCalculatorViewModel::OnButtonPressed(Object ^ parameter)
     NumbersAndOperatorsEnum numOpEnum = CalculatorButtonPressedEventArgs::GetOperationFromCommandParameter(parameter);
     Command cmdenum = ConvertToOperatorsEnum(numOpEnum);
 
-    auto localSettings = Windows::Storage::ApplicationData::Current->LocalSettings;
-    if (localSettings->Values->HasKey("IsTtsEnabled") && safe_cast<bool>(localSettings->Values->Lookup("IsTtsEnabled")))
+    if (m_feedbackForButtonPress != nullptr && !m_feedbackForButtonPress->IsEmpty())
     {
-        String ^ buttonText = nullptr;
-        if (m_feedbackForButtonPress != nullptr && !m_feedbackForButtonPress->IsEmpty())
+        TtsAudioManager::Enqueue(m_feedbackForButtonPress);
+    }
+    else
+    {
+        // 智能映射：将枚举 ID 转换为可读文本
+        Platform::String^ textToRead = nullptr;
+        switch (numOpEnum)
         {
-            buttonText = m_feedbackForButtonPress;
+            case NumbersAndOperatorsEnum::Add: textToRead = L"加"; break;
+            case NumbersAndOperatorsEnum::Subtract: textToRead = L"减"; break;
+            case NumbersAndOperatorsEnum::Multiply: textToRead = L"乘"; break;
+            case NumbersAndOperatorsEnum::Divide: textToRead = L"除"; break;
+            case NumbersAndOperatorsEnum::Equals: textToRead = L"等于"; break;
+            case NumbersAndOperatorsEnum::One: textToRead = L"1"; break;
+            case NumbersAndOperatorsEnum::Two: textToRead = L"2"; break;
+            case NumbersAndOperatorsEnum::Three: textToRead = L"3"; break;
+            case NumbersAndOperatorsEnum::Four: textToRead = L"4"; break;
+            case NumbersAndOperatorsEnum::Five: textToRead = L"5"; break;
+            case NumbersAndOperatorsEnum::Six: textToRead = L"6"; break;
+            case NumbersAndOperatorsEnum::Seven: textToRead = L"7"; break;
+            case NumbersAndOperatorsEnum::Eight: textToRead = L"8"; break;
+            case NumbersAndOperatorsEnum::Nine: textToRead = L"9"; break;
+            case NumbersAndOperatorsEnum::Zero: textToRead = L"0"; break;
+            case NumbersAndOperatorsEnum::Decimal: textToRead = L"点"; break;
+            case NumbersAndOperatorsEnum::Clear: textToRead = L"清除"; break;
+            default: 
+                if (parameter != nullptr) textToRead = parameter->ToString();
+                break;
         }
 
-        if (buttonText != nullptr)
+        if (textToRead != nullptr)
         {
-            winrt::hstring text(buttonText->Data());
-            CalculatorApp::Common::TtsAudioManager::Get().Enqueue(text);
+            TtsAudioManager::Enqueue(textToRead);
         }
     }
 

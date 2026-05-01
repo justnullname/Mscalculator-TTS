@@ -69,7 +69,7 @@ namespace CalculatorApp
             Task.Run(() => NavCategoryStates.IsViewModeEnabled(ViewMode.Graphing));
 
             // Pre-warm the TTS Cache for quick audio feedback
-            CalculatorApp.Common.TtsAudioManager.Get().InitCache();
+            CalculatorApp.ViewModel.Common.TtsAudioManager.InitCache();
 
             OnAppLaunch(args, args.Arguments, args.PrelaunchActivated);
         }

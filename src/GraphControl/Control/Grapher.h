@@ -41,6 +41,7 @@ public enum class GraphViewChangedReason
         event TracingChangedEventHandler ^ TracingChangedEvent;
         event Windows::Foundation::EventHandler<GraphViewChangedReason> ^ GraphViewChangedEvent;
         event Windows::UI::Xaml::RoutedEventHandler ^ GraphPlottedEvent;
+    public:
         virtual event Windows::UI::Xaml::Data::PropertyChangedEventHandler ^ PropertyChanged;
 
     public:

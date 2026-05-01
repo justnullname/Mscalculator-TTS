@@ -1,104 +1,66 @@
 #include "pch.h"
 #include "TtsAudioManager.h"
+#include <winrt/Windows.Media.SpeechSynthesis.h>
+#include <winrt/Windows.Media.Playback.h>
+#include <winrt/Windows.Media.Core.h>
+#include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Foundation.Collections.h>
 
-using namespace winrt;
-using namespace Windows::Media::SpeechSynthesis;
-using namespace Windows::Media::Playback;
-using namespace Windows::Foundation;
+using namespace CalculatorApp::ViewModel::Common;
+using namespace Platform;
+using namespace std;
 
-namespace CalculatorApp::Common
+static winrt::Windows::Media::Playback::MediaPlayer g_mediaPlayer{ nullptr };
+static winrt::Windows::Media::SpeechSynthesis::SpeechSynthesizer g_synthesizer{ nullptr };
+static winrt::Windows::Media::Playback::MediaPlaybackList g_playbackList{ nullptr };
+
+void TtsAudioManager::InitCache()
 {
-    TtsAudioManager& TtsAudioManager::Get()
+    if (!g_mediaPlayer)
     {
-        static TtsAudioManager instance;
-        return instance;
+        try {
+            g_mediaPlayer = winrt::Windows::Media::Playback::MediaPlayer();
+            g_mediaPlayer.AudioCategory(winrt::Windows::Media::Playback::MediaPlayerAudioCategory::Speech);
+            g_mediaPlayer.Volume(1.0);
+
+            g_playbackList = winrt::Windows::Media::Playback::MediaPlaybackList();
+            g_mediaPlayer.Source(g_playbackList);
+
+            g_synthesizer = winrt::Windows::Media::SpeechSynthesis::SpeechSynthesizer();
+            
+            OutputDebugStringW(L"TTS: System Initialized with MediaPlaybackList\n");
+        }
+        catch (...) {
+            OutputDebugStringW(L"TTS: Initialization Failed\n");
+        }
     }
+}
 
-    TtsAudioManager::TtsAudioManager()
-    {
-        m_synthesizer = SpeechSynthesizer();
-        m_mediaPlayer = MediaPlayer();
-        m_mediaPlayer.AutoPlay(true);
-        m_mediaEndedToken = m_mediaPlayer.MediaEnded({ this, &TtsAudioManager::OnMediaEnded });
-    }
+void TtsAudioManager::Enqueue(Platform::String^ text)
+{
+    if (!g_synthesizer || !g_playbackList || text == nullptr || text->IsEmpty()) return;
 
-    IAsyncAction TtsAudioManager::InitCache()
-    {
-        std::vector<hstring> defaultTexts = { L"0", L"1", L"2", L"3", L"4", L"5", L"6", L"7", L"8", L"9", L"+", L"-", L"*", L"/", L"=", L".", L"C", L"CE" };
+    std::wstring wText(text->Data());
+    
+    concurrency::create_task([wText]() {
+        try {
+            auto stream = g_synthesizer.SynthesizeTextToStreamAsync(wText).get();
+            winrt::Windows::Media::Core::MediaSource source = winrt::Windows::Media::Core::MediaSource::CreateFromStream(stream, stream.ContentType());
+            winrt::Windows::Media::Playback::MediaPlaybackItem item{ source };
 
-        for (const auto& text : defaultTexts)
-        {
-            if (m_cache.find(text) == m_cache.end())
+            // 自动加入播放列表并排队
+            g_playbackList.Items().Append(item);
+            
+            // 如果当前没在播，就开始播
+            if (g_mediaPlayer.PlaybackSession().PlaybackState() != winrt::Windows::Media::Playback::MediaPlaybackState::Playing)
             {
-                auto stream = co_await m_synthesizer.SynthesizeTextToStreamAsync(text);
-                std::lock_guard<std::mutex> lock(m_mutex);
-                m_cache[text] = stream;
+                g_mediaPlayer.Play();
             }
+            
+            OutputDebugStringW((L"TTS Queued: " + wText + L"\n").c_str());
         }
-    }
-
-    void TtsAudioManager::Enqueue(hstring const& text)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_queue.push(text);
-
-        if (!m_isPlaying)
-        {
-            PlayNext();
+        catch (...) {
+            OutputDebugStringW(L"TTS: Synthesis/Enqueue Failed\n");
         }
-    }
-
-    void TtsAudioManager::PlayNext()
-    {
-        if (m_queue.empty())
-        {
-            m_isPlaying = false;
-            return;
-        }
-
-        m_isPlaying = true;
-        hstring text = m_queue.front();
-        m_queue.pop();
-
-        SpeechSynthesisStream stream{ nullptr };
-        {
-            if (m_cache.find(text) != m_cache.end())
-            {
-                stream = m_cache[text];
-            }
-        }
-
-        if (stream)
-        {
-            stream.Seek(0);
-            m_mediaPlayer.Source(MediaSource::CreateFromStream(stream, stream.ContentType()));
-        }
-        else
-        {
-            // Synthesize on the fly if not cached
-            auto op = m_synthesizer.SynthesizeTextToStreamAsync(text);
-            op.Completed(
-                [this](IAsyncOperation<SpeechSynthesisStream> const& sender, AsyncStatus const status)
-                {
-                    if (status == AsyncStatus::Completed)
-                    {
-                        auto newStream = sender.GetResults();
-                        m_mediaPlayer.Source(MediaSource::CreateFromStream(newStream, newStream.ContentType()));
-                    }
-                    else
-                    {
-                        // Fallback on error
-                        std::lock_guard<std::mutex> lock(m_mutex);
-                        PlayNext();
-                    }
-                });
-        }
-    }
-
-    void TtsAudioManager::OnMediaEnded(MediaPlayer const& sender, IInspectable const& args)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        PlayNext();
-    }
+    });
 }
