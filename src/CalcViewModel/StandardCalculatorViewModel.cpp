@@ -666,13 +666,47 @@ void StandardCalculatorViewModel::OnButtonPressed(Object ^ parameter)
     {
         // 智能映射：将枚举 ID 转换为可读文本
         Platform::String^ textToRead = nullptr;
+        Platform::String^ resourceKey = nullptr;
+
         switch (numOpEnum)
         {
-            case NumbersAndOperatorsEnum::Add: textToRead = L"加"; break;
-            case NumbersAndOperatorsEnum::Subtract: textToRead = L"减"; break;
-            case NumbersAndOperatorsEnum::Multiply: textToRead = L"乘"; break;
-            case NumbersAndOperatorsEnum::Divide: textToRead = L"除"; break;
-            case NumbersAndOperatorsEnum::Equals: textToRead = L"等于"; break;
+            // 基本运算符
+            case NumbersAndOperatorsEnum::Add: resourceKey = L"plusButton/[using:CalculatorApp.Controls]CalculatorButton/AuditoryFeedback"; break;
+            case NumbersAndOperatorsEnum::Subtract: resourceKey = L"minusButton/[using:CalculatorApp.Controls]CalculatorButton/AuditoryFeedback"; break;
+            case NumbersAndOperatorsEnum::Multiply: resourceKey = L"multiplyButton/[using:CalculatorApp.Controls]CalculatorButton/AuditoryFeedback"; break;
+            case NumbersAndOperatorsEnum::Divide: resourceKey = L"divideButton/[using:CalculatorApp.Controls]CalculatorButton/AuditoryFeedback"; break;
+            case NumbersAndOperatorsEnum::Equals: resourceKey = L"equalButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            
+            // 常用功能键
+            case NumbersAndOperatorsEnum::Sqrt: resourceKey = L"squareRootButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::XPower2: resourceKey = L"xpower2Button/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Invert: resourceKey = L"invertButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Percent: resourceKey = L"percentButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Negate: resourceKey = L"negateButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Backspace: resourceKey = L"backSpaceButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::ClearEntry: resourceKey = L"clearEntryButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Clear: resourceKey = L"clearButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Decimal: resourceKey = L"decimalSeparatorButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+
+            // 科学计算（部分常用）
+            case NumbersAndOperatorsEnum::Sin: resourceKey = L"sinButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Cos: resourceKey = L"cosButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Tan: resourceKey = L"tanButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Pi: resourceKey = L"piButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::XPowerY: resourceKey = L"powerButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::LogBase10: resourceKey = L"logBase10Button/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::LogBaseE: resourceKey = L"logBaseEButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Mod: resourceKey = L"modButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Factorial: resourceKey = L"factorialButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Exp: resourceKey = L"expButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::Abs: resourceKey = L"absButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::LogBaseY: resourceKey = L"logBaseY/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::OpenParenthesis: resourceKey = L"openParenthesisButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+            case NumbersAndOperatorsEnum::CloseParenthesis: resourceKey = L"closeParenthesisButton/[using:Windows.UI.Xaml.Automation]AutomationProperties/Name"; break;
+
+
+
+            // 数字直接朗读
             case NumbersAndOperatorsEnum::One: textToRead = L"1"; break;
             case NumbersAndOperatorsEnum::Two: textToRead = L"2"; break;
             case NumbersAndOperatorsEnum::Three: textToRead = L"3"; break;
@@ -683,12 +717,21 @@ void StandardCalculatorViewModel::OnButtonPressed(Object ^ parameter)
             case NumbersAndOperatorsEnum::Eight: textToRead = L"8"; break;
             case NumbersAndOperatorsEnum::Nine: textToRead = L"9"; break;
             case NumbersAndOperatorsEnum::Zero: textToRead = L"0"; break;
-            case NumbersAndOperatorsEnum::Decimal: textToRead = L"点"; break;
-            case NumbersAndOperatorsEnum::Clear: textToRead = L"清除"; break;
+            
             default: 
                 if (parameter != nullptr) textToRead = parameter->ToString();
                 break;
         }
+
+        if (resourceKey != nullptr)
+        {
+            textToRead = AppResourceProvider::GetInstance()->GetResourceString(resourceKey);
+            if (textToRead == nullptr || textToRead->IsEmpty())
+            {
+                if (parameter != nullptr) textToRead = parameter->ToString();
+            }
+        }
+
 
         if (textToRead != nullptr)
         {
