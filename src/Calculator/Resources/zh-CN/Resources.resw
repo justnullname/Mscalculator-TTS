@@ -846,7 +846,7 @@
     <comment>Screen reader prompt for the Calculator numberPad button</comment>
   </data>
   <data name="decimalSeparatorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>十进制分隔符</value>
+    <value>点</value>
     <comment>Screen reader prompt for the "." button</comment>
   </data>
   <data name="clearEntryButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">

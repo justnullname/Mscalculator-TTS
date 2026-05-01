@@ -296,3 +296,9 @@ src/CalcViewModel/DataLoaders/DataLoaderConstants.h
 !src/x64
 !src/x86
 !src/out
+# Temp build artifacts
+temp_unpack/
+temp_unbundle/
+bin/
+*.pfx
+*.cer
