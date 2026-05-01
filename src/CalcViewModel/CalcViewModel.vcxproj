@@ -287,7 +287,7 @@
     <ClInclude Include="StandardCalculatorViewModel.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="UnitConverterViewModel.h" />
-  <ClInclude Include="Common\TtsAudioManager.h" /></ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\AppResourceProvider.cpp" />
     <ClCompile Include="Common\Automation\NarratorAnnouncement.cpp" />
@@ -327,7 +327,7 @@
     <ClCompile Include="Snapshots.cpp" />
     <ClCompile Include="StandardCalculatorViewModel.cpp" />
     <ClCompile Include="UnitConverterViewModel.cpp" />
-  <ClCompile Include="Common\TtsAudioManager.cpp" /></ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CalcManager\CalcManager.vcxproj">
       <Project>{311e866d-8b93-4609-a691-265941fee101}</Project>

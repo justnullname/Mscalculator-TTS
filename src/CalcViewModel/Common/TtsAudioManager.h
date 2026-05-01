@@ -11,6 +11,5 @@ namespace CalculatorApp::ViewModel::Common
         static void Enqueue(Platform::String^ text);
 
     private:
-        static void PlayNext();
     };
 }

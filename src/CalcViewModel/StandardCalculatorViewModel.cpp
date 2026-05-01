@@ -263,12 +263,6 @@ void StandardCalculatorViewModel::SetPrimaryDisplay(_In_ String ^ displayStringV
 
     IsInError = isError;
     
-    // 如果是结果更新（通常意味着计算完成），则朗读当前显示的值
-    if (AreAlwaysOnTopResultsUpdated)
-    {
-        TtsAudioManager::Enqueue(DisplayValue);
-    }
-
     if (IsProgrammer)
     {
         UpdateProgrammerPanelDisplay();
@@ -771,6 +765,11 @@ void StandardCalculatorViewModel::OnButtonPressed(Object ^ parameter)
 
             TraceLogger::GetInstance()->UpdateButtonUsage(numOpEnum, GetCalculatorMode());
             m_standardCalculatorManager.SendCommand(cmdenum);
+
+            if (numOpEnum == NumbersAndOperatorsEnum::Equals)
+            {
+                TtsAudioManager::Enqueue(DisplayValue);
+            }
         }
     }
 }
