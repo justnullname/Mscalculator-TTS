@@ -48,6 +48,15 @@ namespace CalculatorApp
             AboutExpander.Description = copyrightText;
 
             InitializeContributeTextBlock();
+
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            if (localSettings.Values.ContainsKey("IsTtsEnabled"))
+            {
+                TtsToggleSwitch.IsOn = (bool)localSettings.Values["IsTtsEnabled"];
+            }
+            else {
+                TtsToggleSwitch.IsOn = false;
+            }
         }
 
         private void OnThemeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -56,6 +65,12 @@ namespace CalculatorApp
             {
                 ThemeHelper.RootTheme = ThemeHelper.GetEnum<ElementTheme>(selectItem.Tag.ToString());
             }
+        }
+
+        private void TtsToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            localSettings.Values["IsTtsEnabled"] = TtsToggleSwitch.IsOn;
         }
 
         public void SetDefaultFocus()

@@ -68,6 +68,9 @@ namespace CalculatorApp
             // It takes time to check GraphingMode at the very first time. Warm up in a background thread.
             Task.Run(() => NavCategoryStates.IsViewModeEnabled(ViewMode.Graphing));
 
+            // Pre-warm the TTS Cache for quick audio feedback
+            CalculatorApp.Common.TtsAudioManager.Get().InitCache();
+
             OnAppLaunch(args, args.Arguments, args.PrelaunchActivated);
         }
 

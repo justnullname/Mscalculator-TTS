@@ -8,6 +8,7 @@
 #include "Common/LocalizationSettings.h"
 #include "Common/CopyPasteManager.h"
 #include "Common/TraceLogger.h"
+#include "Common/TtsAudioManager.h"
 
 using namespace CalculatorApp;
 using namespace CalculatorApp::ViewModel::Common;
@@ -183,6 +184,9 @@ StandardCalculatorViewModel::StandardCalculatorViewModel()
     IsNegateEnabled = true;
     IsDecimalEnabled = true;
     AreProgrammerRadixOperatorsVisible = false;
+
+    // Pre-warm the TTS Cache for quick audio feedback
+    CalculatorApp::Common::TtsAudioManager::Get().InitCache();
 }
 
 String ^ StandardCalculatorViewModel::LocalizeDisplayValue(_In_ wstring const& displayValue)
@@ -653,6 +657,22 @@ void StandardCalculatorViewModel::OnButtonPressed(Object ^ parameter)
     m_feedbackForButtonPress = CalculatorButtonPressedEventArgs::GetAuditoryFeedbackFromCommandParameter(parameter);
     NumbersAndOperatorsEnum numOpEnum = CalculatorButtonPressedEventArgs::GetOperationFromCommandParameter(parameter);
     Command cmdenum = ConvertToOperatorsEnum(numOpEnum);
+
+    auto localSettings = Windows::Storage::ApplicationData::Current->LocalSettings;
+    if (localSettings->Values->HasKey("IsTtsEnabled") && safe_cast<bool>(localSettings->Values->Lookup("IsTtsEnabled")))
+    {
+        String ^ buttonText = nullptr;
+        if (m_feedbackForButtonPress != nullptr && !m_feedbackForButtonPress->IsEmpty())
+        {
+            buttonText = m_feedbackForButtonPress;
+        }
+
+        if (buttonText != nullptr)
+        {
+            winrt::hstring text(buttonText->Data());
+            CalculatorApp::Common::TtsAudioManager::Get().Enqueue(text);
+        }
+    }
 
     if (IsInError)
     {

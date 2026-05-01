@@ -109,6 +109,14 @@
                     </toolkit:SettingsExpander.Items>
                 </toolkit:SettingsExpander>
 
+                <TextBlock Margin="0,12,0,4"
+                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                           AutomationProperties.HeadingLevel="Level1"
+                           Text="Audio Feedback"/>
+                <toolkit:SettingsCard Header="Enable Audio Feedback (TTS)">
+                    <ToggleSwitch x:Name="TtsToggleSwitch" IsOn="False" Toggled="TtsToggleSwitch_Toggled"/>
+                </toolkit:SettingsCard>
+
                 <TextBlock x:Name="AboutGroupTitle"
                            Margin="0,30,0,4"
                            Style="{StaticResource BodyStrongTextBlockStyle}"
